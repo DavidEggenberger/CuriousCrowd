@@ -17,10 +17,12 @@ namespace Server.Services
     {
         private readonly IWebHostEnvironment webHostEnvironment;
         private readonly DateProvider dateProvider;
-        public MessageStreamingService(IWebHostEnvironment webHostEnvironment, DateProvider dateProvider)
+        private readonly DataContextContainer dataContextContainer;
+        public MessageStreamingService(IWebHostEnvironment webHostEnvironment, DateProvider dateProvider, DataContextContainer dataContextContainer)
         {
             this.webHostEnvironment = webHostEnvironment;
             this.dateProvider = dateProvider;
+            this.dataContextContainer = dataContextContainer;
         }
         public async IAsyncEnumerable<Message> ReadMessages(int skip = 0)
         {
@@ -28,12 +30,22 @@ namespace Server.Services
             {
                 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
-                    await foreach (var expandoObject in csv.GetRecordsAsync<dynamic>().Skip(skip).Take(25))
+                    await foreach (var expandoObject in csv.GetRecordsAsync<dynamic>().Skip(skip).Take(10000))
                     {
                         var message = new Message();
                         try
                         {
                             var dictionary = (IDictionary<string, object>)expandoObject;
+
+                            if (dictionary.TryGetValue("alliance_id", out var allianceId))
+                            {
+                                Alliance alliance = null;
+                                if ((alliance = dataContextContainer.Alliances.SingleOrDefault(a => a.AllianceId == allianceId.ToString())) == null)
+                                {
+                                    continue;
+                                }
+                                message.Alliance = alliance;
+                            }
 
                             if (double.TryParse(dictionary["FRAUD"].ToString(), out var fraud))
                             {
@@ -75,6 +87,12 @@ namespace Server.Services
                                 message.FilteredMessage = filteredMessage.ToString();
                             }
 
+                            if (dictionary.TryGetValue("account_id", out var accountId))
+                            {
+                                message.AccountId = accountId.ToString();
+                            }
+
+                            message.Id = Guid.NewGuid();
                             message.Date = dateProvider.CurrentSimulatedDate;
                         }
                         catch(Exception ex)

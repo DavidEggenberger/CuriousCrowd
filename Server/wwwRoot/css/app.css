@@ -7,13 +7,14 @@
     display: grid;
     grid-template-rows: 70px 1fr;
     grid-template-columns: 1fr;
+    background: linear-gradient(180deg, rgba(140,219,227,1) 0%, rgba(62,180,137,1) 100%);
+    background: rgba(196,214,176,1);
 }
 nav{
-    background-color: gray;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    padding: 10px 10px 0 10px;
+    padding: 15px 15px 0 15px;
     align-items: flex-end;
 }
 nav .menuSection{
@@ -27,14 +28,104 @@ nav .menuSection{
     font-size: 17px;
 }
 .menuSection a{
-    margin-bottom: 5px;
     font-size: 19px;
     padding-bottom: 1px;
 }
 
 .main{
-    padding: 10px;
+    padding: 15px;
+    overflow: hidden;
 }
 h1{
     font-size: 30px;
+}
+
+.indexContainer{
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 250px 2fr;
+    grid-template-rows: 1fr;
+    grid-column-gap: 20px;
+    overflow: hidden;
+}
+
+    .indexContainer .sideBar {
+        border-radius: 7px;
+        border: 2px solid black;
+        background: rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(5px);
+        padding: 5px;
+        overflow: hidden;
+    }
+    .indexContainer .reportedMessageContainer {
+        border-radius: 7px;
+        border: 2px solid black;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr;
+        grid-template-rows: 1fr;
+        padding: 5px;
+    }
+.active {
+    background: rgba(255, 255, 255, 0.2) !important;
+    outline: 2px solid black;
+}
+
+    .reportedMessageContainer .contextContainer{
+        display: flex;
+        flex-direction: column;
+    }
+
+.reportedMessageOverview {
+    height: 30px;
+    margin: 3px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 3px;
+    padding: 3px;
+    padding-top: 6px;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.contextContainer{
+    display: flex;
+    flex-direction: row;
+    padding-left: 10px;
+}
+.messagesContainer{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    place-content: center;
+}
+.MessageContainer {
+    display: grid;
+    place-content: center;
+    padding: 4px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    border: 3px solid black;
+    min-width: 500px;
+    background-color: rgba(250,128,114, 0.5);
+}
+.OtherMessagesFromUserContainer {
+    display: grid;
+    place-content: center;
+    padding: 4px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    background-color: rgba(250,128,114, 0.3);
+    min-width: 500px;
+    border: 1px solid;
+}
+.OtherMessageContainer {
+    display: grid;
+    place-content: center;
+    padding: 4px;
+    border: 1px solid;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    min-width: 500px;
 }

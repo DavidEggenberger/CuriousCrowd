@@ -29,7 +29,7 @@ namespace Client.BuildingBlocks.Http
                 }
                 catch (Exception ex)
                 {
-
+                    Console.WriteLine(ex.Message);
                 }
             }
             return default;

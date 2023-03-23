@@ -1,8 +1,9 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager navigationManager
 
 <div class="page">
     <nav>
-        <h1>CuriousCrowd</h1>
+        <h1 @onclick='() => navigationManager.NavigateTo("/")'>CuriousCrowd</h1>
         <div class="menuSection">
             <span style="display: block;">
                 @currentTime.ToString("G", CultureInfo.CreateSpecificCulture("de-DE"))

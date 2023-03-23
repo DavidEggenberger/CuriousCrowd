@@ -1,30 +1,75 @@
 ﻿@page "/"
 @inject HttpClientService httpClientService
 
-<DashboardComponent>
-
-</DashboardComponent>
-
-@foreach (var item in messages)
-{
-    <h4>@item.RawMessage @item.Date @item.HarmfullnessScore</h4>
-}
+<div class="indexContainer">
+    <div class="sideBar">
+        @if(reportedMessagesSorted != null)
+        {
+            @foreach(var reportedMessage in reportedMessagesSorted)
+            {
+                @if(reportedMessage == selectedMessage)
+                {
+                    <div class="reportedMessageOverview active" @onclick="() => SetReportedMessage(reportedMessage)" >
+                        <h7>@reportedMessage.Date.ToString("T", CultureInfo.CreateSpecificCulture("de-DE"))  </h7>
+                        <h7>Urgency: @reportedMessage.Risk</h7>
+                    </div>
+                }
+                else
+                {
+                    <div class="reportedMessageOverview" @onclick="() => SetReportedMessage(reportedMessage)" >
+                        <h7>@reportedMessage.Date.ToString("T", CultureInfo.CreateSpecificCulture("de-DE"))  </h7>
+                        <h7>Urgency: @reportedMessage.Risk</h7>
+                    </div>
+                }  
+            }
+        }   
+    </div>
+    <ReportedMessageComponent ReportedMessage="selectedMessage"/>
+</div>
 
 @code{
+    private MessageDTO selectedMessage;
+
     private List<MessageDTO> messages;
+
+    private List<MessageDTO> reportedMessages;
+    private List<MessageDTO> reportedMessagesSorted => reportedMessages.OrderByDescending(r => r.Risk).ToList();
 
     [CascadingParameter]
     public HubConnection connection { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        selectedMessage = new MessageDTO { };
         messages = new List<MessageDTO>();
+        reportedMessages = new List<MessageDTO>()
+        {
+            new MessageDTO
+            {
+                Date = DateTime.Now,
+                RawMessage = "sadfdsaf jöl ölklasdkjf öl ölfdsakj ",
+                Risk = 8
+            }
+        };
 
         connection.On<MessageBundleDTO>(SignalRConstants.NewMessages, (o) =>
         {
-            messages.Add(o.Messages.First());
+            messages.AddRange(o.Messages.DistinctBy(m => m.Id));
+            foreach(var ob in o.Messages.DistinctBy(m => m.Id))
+            {
+                if(ob.Risk > 3)
+                {
+                    reportedMessages.Add(ob);
+                }
+            }
             StateHasChanged();
         });
+    }
+
+    private void SetReportedMessage(MessageDTO messageDTO)
+    {
+        selectedMessage = messageDTO;
+        StateHasChanged();
     }
 }
 

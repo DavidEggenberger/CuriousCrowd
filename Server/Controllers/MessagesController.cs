@@ -2,8 +2,12 @@
 using AutoMapper.Internal.Mappers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Server.BuildingBlocks;
+using Server.Data;
 using Server.Services;
 using Shared.Messages;
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -15,19 +19,37 @@ namespace Server.Controllers
     {
         private readonly MessageStreamingService messageStreamingService;
         private readonly IMapper objectMapper;
-        public MessagesController(IMapper objectMapper, MessageStreamingService messageStreamingService)
+        private readonly SkipCountProvider skipCountProvider;
+        private readonly DataContextContainer dataContextContainer;
+        public MessagesController(IMapper objectMapper, DataContextContainer dataContextContainer, MessageStreamingService messageStreamingService, SkipCountProvider skipCountProvider)
         {
             this.messageStreamingService = messageStreamingService;
             this.objectMapper = objectMapper;
+            this.skipCountProvider = skipCountProvider;
+            this.dataContextContainer = dataContextContainer;
         }
 
         [HttpGet]
         public async IAsyncEnumerable<MessageDTO> GetMessages()
         {
-            await foreach(var message in messageStreamingService.ReadMessages())
+            await foreach(var message in messageStreamingService.ReadMessages(skipCountProvider.GetSkipCount()))
             {
                 yield return objectMapper.Map<MessageDTO>(message);
             }
+        }
+
+        [HttpGet("relatedMessages/{messageId}")]
+        public async Task<List<MessageDTO>> GetRelatedMessages([FromRoute] Guid messageId)
+        {
+            var message = dataContextContainer.Messages.SingleOrDefault(m => m.Id == messageId);
+            if(message == null)
+            {
+                return null;
+            }
+            
+            var relatedMessages = dataContextContainer.Messages.Where(m => m.Alliance == message.Alliance).ToList();
+
+            return objectMapper.Map<List<MessageDTO>>(relatedMessages);
         }
     }
 }

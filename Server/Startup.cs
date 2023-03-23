@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Server.BuildingBlocks;
+using Server.Data;
 using Server.Hubs;
 using Server.Services;
 using Server.Workers;
@@ -33,6 +34,10 @@ namespace Server
         {
             services.AddScoped<MessageStreamingService>();
             services.AddScoped<DateProvider>();
+            
+            services.AddSingleton<AllianceLoaderService>();
+            services.AddSingleton<DataContextContainer>();
+            services.AddSingleton<SkipCountProvider>();
 
             services.AddHostedService<BackgroundDataWorker>();
 
@@ -42,7 +47,7 @@ namespace Server
                 .AddJsonOptions(options => 
                 {
                     //options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
-                    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+                    //options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
                 });
             services.AddRazorPages();
             services.AddSignalR();

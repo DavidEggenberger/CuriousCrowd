@@ -5,6 +5,9 @@ namespace Server.Data
 {
     public class Message
     {
+        public string AccountId { get; set; }
+        public Guid Id { get; set; }
+
         [Name("is_family_friendly")]
         public double? FamilyFriendly { get; set; }
         
@@ -41,6 +44,9 @@ namespace Server.Data
 
         public double? HarmfullnessScore => CalculateHarfulness();
 
+        public Alliance Alliance { get; set; }
+
+        public bool Reported { get; set; }
 
         private double CalculateHarfulness()
         {

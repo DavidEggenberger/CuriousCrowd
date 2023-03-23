@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Server.BuildingBlocks;
+using Server.Data;
 using Server.Hubs;
 using Server.Services;
 using Shared.Constants;
@@ -17,15 +19,18 @@ namespace Server.Workers
     public class BackgroundDataWorker : BackgroundService
     {
         private readonly IHubContext<NotificationHub> hubContext;
-        private static int skipCount;
         private readonly IMapper mapper;
         private readonly IServiceProvider services;
         private readonly Random rand = new Random();
-        public BackgroundDataWorker(IHubContext<NotificationHub> hubContext, IMapper mapper, IServiceProvider services)
+        private readonly SkipCountProvider skipCountProvider;
+        private readonly DataContextContainer dataContextContainer;
+        public BackgroundDataWorker(IHubContext<NotificationHub> hubContext, IMapper mapper, IServiceProvider services, DataContextContainer dataContextContainer, SkipCountProvider skipCountProvider)
         {
             this.hubContext = hubContext;
             this.mapper = mapper;
             this.services = services;
+            this.skipCountProvider = skipCountProvider;
+            this.dataContextContainer = dataContextContainer;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -34,9 +39,10 @@ namespace Server.Workers
             {
                 while (true)
                 {
-                    await Task.Delay(rand.Next(1000));
+                    await Task.Delay(20);
 
                     var messageBundle = new MessageBundleDTO { Messages = new List<MessageDTO>() };
+                    var messages = new List<Message>();
 
                     using (var scope = services.CreateScope())
                     {
@@ -44,18 +50,17 @@ namespace Server.Workers
                             scope.ServiceProvider
                                 .GetRequiredService<MessageStreamingService>();
 
-                        await foreach (var item in messageStreamingService.ReadMessages(Math.Min(1000, skipCount)))
+                        await foreach (var item in messageStreamingService.ReadMessages(skipCountProvider.GetSkipCount()))
                         {
                             messageBundle.Messages.Add(mapper.Map<MessageDTO>(item));
+                            messages.Add(item);
                         }
-                        skipCount += 20;
-                        if(skipCount > 800)
-                        {
-                            skipCount = 0;
-                        }
+                        skipCountProvider.Increment();
                     }
 
-                    await hubContext.Clients.All.SendAsync(SignalRConstants.NewMessages, messageBundle);
+                    dataContextContainer.AddMessages(messages);
+
+                    await hubContext.Clients.All.SendAsync(SignalRConstants.NewMessages, new MessageBundleDTO { Messages = messageBundle.Messages.DistinctBy(m => m.Id).ToList() });
                 }
             }
             catch(Exception ex)

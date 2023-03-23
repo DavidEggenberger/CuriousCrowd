@@ -1,0 +1,74 @@
+﻿@inject HttpClientService httpClientService
+
+<div class="reportedMessageContainer">
+    <div class="contextContainer"> 
+        <div>
+            <h3>Relevancy of report:</h3>
+            <h3>@ReportedMessage?.Date</h3>
+        </div>
+    </div>
+    <div class="messagesContainer">
+        @if(RelatedMessagesSorted?.Count > 0)
+        {
+            foreach(var relatedMessage in RelatedMessagesSorted)
+            {
+                @if(relatedMessage.Id == ReportedMessage.Id)
+                {
+                    <div class="MessageContainer" style="display: grid; align-items: center; justify-items: center;">
+                        <h3>Inspected User: @relatedMessage.Date.ToString("T", CultureInfo.CreateSpecificCulture("de-DE"))</h3>
+                        <h2 style="margin-top: 5px;">@relatedMessage.RawMessage</h2>
+                    </div>
+                }
+                @if(relatedMessage.AccountId == ReportedMessage.AccountId)
+                {
+                    <div class="OtherMessagesFromUserContainer" style="display: grid; align-items: center; justify-items: center;">
+                        <h3>Inspected User: @relatedMessage.Date.ToString("T", CultureInfo.CreateSpecificCulture("de-DE"))</h3>
+                        <h2 style="margin-top: 5px;">@relatedMessage.RawMessage</h2>
+                    </div>
+                }
+                else
+                {
+                    <div class="OtherMessageContainer">
+                        <div style="display: grid; align-items: center; justify-items: center;">
+                            <h3>User @AccountsTuples.First(a => a.Item2 == relatedMessage.AccountId).Item1: @relatedMessage.Date.ToString("T", CultureInfo.CreateSpecificCulture("de-DE"))</h3>
+                            <h2 style="margin-top: 5px;">@relatedMessage.RawMessage</h2>
+                        </div>      
+                    </div>
+                }
+            }
+        }
+    </div>
+    <div class="buttonContainer">
+
+    </div>
+</div>
+
+
+@code{
+    private MessageDTO reportedMessage;
+
+    [Parameter]
+    public MessageDTO ReportedMessage
+    {
+        get => reportedMessage;
+        set
+        {
+            reportedMessage = value;
+            Fetch();
+        }
+    }
+
+    public List<MessageDTO> RelatedMessages { get; set; } = new List<MessageDTO>();
+
+    public List<MessageDTO> RelatedMessagesSorted => RelatedMessages?.ToList();
+
+    private List<(int, string)> AccountsTuples = new List<(int, string)>();
+
+    public async Task Fetch()
+    {
+        RelatedMessages = await httpClientService.GetFromAPIAsync<List<MessageDTO>>($"/messages/relatedMessages/{ReportedMessage.Id}");
+        AccountsTuples.AddRange(RelatedMessages.DistinctBy(b => b.AccountId).Where(a => a.AccountId != reportedMessage.AccountId).Select((r, i) => (i + 1, r.AccountId)));
+        AccountsTuples.Add(new(0, reportedMessage.AccountId));
+        StateHasChanged();
+    }
+}
