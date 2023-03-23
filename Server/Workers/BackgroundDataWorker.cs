@@ -30,27 +30,34 @@ namespace Server.Workers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                await Task.Delay(rand.Next(1000));
-
-                var messageBundle = new MessageBundleDTO { Messages = new List<MessageDTO>() };
-
-                using (var scope = services.CreateScope())
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    var messageStreamingService =
-                        scope.ServiceProvider
-                            .GetRequiredService<MessageStreamingService>();
+                    await Task.Delay(rand.Next(1000));
 
-                    await foreach (var item in messageStreamingService.ReadMessages(Math.Max(1000, skipCount)))
+                    var messageBundle = new MessageBundleDTO { Messages = new List<MessageDTO>() };
+
+                    using (var scope = services.CreateScope())
                     {
-                        messageBundle.Messages.Add(mapper.Map<MessageDTO>(item));
-                    }
-                    skipCount += 20;
-                }
+                        var messageStreamingService =
+                            scope.ServiceProvider
+                                .GetRequiredService<MessageStreamingService>();
 
-                await hubContext.Clients.All.SendAsync(SignalRConstants.NewMessages, messageBundle);
+                        await foreach (var item in messageStreamingService.ReadMessages(Math.Min(1000, skipCount)))
+                        {
+                            messageBundle.Messages.Add(mapper.Map<MessageDTO>(item));
+                        }
+                        skipCount += 20;
+                    }
+
+                    await hubContext.Clients.All.SendAsync(SignalRConstants.NewMessages, messageBundle);
+                }
             }
+            catch(Exception ex)
+            {
+
+            }     
         }
     }
 }
