@@ -42,7 +42,7 @@ namespace Server.Workers
                         scope.ServiceProvider
                             .GetRequiredService<MessageStreamingService>();
 
-                    await foreach (var item in messageStreamingService.ReadMessages(skipCount))
+                    await foreach (var item in messageStreamingService.ReadMessages(Math.Max(1000, skipCount)))
                     {
                         messageBundle.Messages.Add(mapper.Map<MessageDTO>(item));
                     }
