@@ -23,6 +23,7 @@ namespace Client
                 client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             });
+            builder.Services.AddScoped<HttpClientService>();
 
             await builder.Build().RunAsync();
         }

@@ -1,5 +1,27 @@
 ﻿@page "/"
+@inject HttpClientService httpClientService
 
-<h3>Hello @DateTime.UtcNow.ToLongDateString()</h3>
+@foreach (var item in messages)
+{
+    <h4>@item.RawMessage @item.Date @item.HarmfullnessScore</h4>
+}
+
+@code{
+    private List<MessageDTO> messages;
+
+    [CascadingParameter]
+    public HubConnection connection { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        messages = new List<MessageDTO>();
+
+        connection.On<MessageBundleDTO>(SignalRConstants.NewMessages, (o) =>
+        {
+            messages.Add(o.Messages.First());
+            StateHasChanged();
+        });
+    }
+}
 
 

@@ -3,6 +3,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System;
 using System.Net.Http.Json;
+using System.Collections.Generic;
+using System.IO;
+using Shared.Messages;
 
 namespace Client.BuildingBlocks.Http
 {
@@ -14,6 +17,7 @@ namespace Client.BuildingBlocks.Http
             httpClient = httpClientFactory.CreateClient(HttpClientConstants.DefaultHttpClient);
             httpClient.BaseAddress = new Uri(httpClient.BaseAddress.ToString());
         }
+
         public async Task<T> GetFromAPIAsync<T>(string route)
         {
             HttpResponseMessage httpResponseMessage = await httpClient.GetAsync("/api" + route);
@@ -29,6 +33,24 @@ namespace Client.BuildingBlocks.Http
                 }
             }
             return default;
+        }
+
+        public async IAsyncEnumerable<T> GetAsyncEnumerableFromAPI<T>(string route)
+        {
+            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync("/api" + route);
+            Stream responseStream = await httpResponseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            IAsyncEnumerable<T> items = JsonSerializer.DeserializeAsyncEnumerable<T>(
+                responseStream,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultBufferSize = 128
+                });
+
+            await foreach (T item in items)
+            {
+                yield return item;
+            }
         }
 
         public async Task<T> PostToAPIAsync<T>(string route, T t)

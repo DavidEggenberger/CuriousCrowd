@@ -8,7 +8,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Server.BuildingBlocks;
+using Server.Hubs;
 using Server.Services;
+using Server.Workers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +34,8 @@ namespace Server
             services.AddScoped<MessageStreamingService>();
             services.AddScoped<DateProvider>();
 
+            services.AddHostedService<BackgroundDataWorker>();
+
             services.AddAutoMapper(typeof(Startup).Assembly);
 
             services.AddControllers()
@@ -41,6 +45,7 @@ namespace Server
                     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
                 });
             services.AddRazorPages();
+            services.AddSignalR();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Server", Version = "v1" });
@@ -69,6 +74,7 @@ namespace Server
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
+                endpoints.MapHub<NotificationHub>("/notificationhub");
                 endpoints.MapFallbackToPage("/_Host");
             });
         }

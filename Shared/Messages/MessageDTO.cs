@@ -20,5 +20,7 @@ namespace Shared.Messages
         public DateTimeOffset TimeStamp { get; set; }
         public string RawMessage { get; set; }
         public string FilteredMessage { get; set; }
+
+        public double? HarmfullnessScore { get; set; }
     }
 }

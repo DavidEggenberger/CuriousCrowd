@@ -37,5 +37,35 @@ namespace Server.Data
 
         public string RawMessage { get; set; }
         public string FilteredMessage { get; set; }
+
+
+        public double? HarmfullnessScore => CalculateHarfulness();
+
+
+        private double CalculateHarfulness()
+        {
+            double result = 1;
+            if (HateSpeech.HasValue)
+            {
+                result *= Math.Max(1, HateSpeech.Value);
+            }
+            if (Violence.HasValue)
+            {
+                result *= Math.Max(1, Violence.Value);
+            }
+            if (Fraud.HasValue)
+            {
+                result *= Math.Max(1, Fraud.Value);
+            }
+            if (Vulgarity.HasValue)
+            {
+                result *= Math.Max(1, Vulgarity.Value);
+            }
+            if (Bullying.HasValue)
+            {
+                result *= Math.Max(1, Bullying.Value);
+            }
+            return result;
+        }
     }
 }
