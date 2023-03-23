@@ -24,7 +24,7 @@ namespace Server.Services
         }
         public async IAsyncEnumerable<Message> ReadMessages(int skip = 0)
         {
-            using (var reader = new StreamReader($@"{(webHostEnvironment.IsProduction() ? webHostEnvironment.WebRootPath : webHostEnvironment.ContentRootPath)}\Data\{DataConstants.MessageCSVFilePath}"))
+            using (var reader = new StreamReader($@"Data\{DataConstants.MessageCSVFilePath}"))
             {
                 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
