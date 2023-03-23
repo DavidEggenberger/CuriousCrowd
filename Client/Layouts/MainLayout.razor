@@ -1,11 +1,38 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="page">
-    <div class="sidebar">
-        
-    </div>
+    <nav>
+        <h1>CuriousCrowd</h1>
+        <div class="menuSection">
+            <span style="display: block;">
+                @currentTime.ToString("G", CultureInfo.CreateSpecificCulture("de-DE"))
+            </span>
+            <a href="/About">
+                About Us
+            </a>
+        </div>
+    </nav>
 
     <div class="main">
-        
+        @Body
     </div>
 </div>
+
+
+@code{
+    private static Timer timer;
+    private DateTime currentTime;
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentTime = DateProvider.CurrentSimulatedDate;
+
+        timer = new System.Timers.Timer(1000);
+        timer.Elapsed += (sender, args) =>
+        {
+            currentTime = DateProvider.CurrentSimulatedDate;
+            StateHasChanged();
+        };
+        timer.Enabled = true;
+    }
+}

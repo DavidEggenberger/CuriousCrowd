@@ -1,2 +1,40 @@
-﻿body {
+﻿#blazor-error-ui{
+    display: none;
+}
+.page {
+    height: 100vh;
+    width: 100vw;
+    display: grid;
+    grid-template-rows: 70px 1fr;
+    grid-template-columns: 1fr;
+}
+nav{
+    background-color: gray;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px 10px 0 10px;
+    align-items: flex-end;
+}
+nav .menuSection{
+    display: flex;
+    flex-direction: row;
+}
+.menuSection span{
+    align-self: flex-end;
+    margin-right: 15px;
+    margin-bottom: 3px;
+    font-size: 17px;
+}
+.menuSection a{
+    margin-bottom: 5px;
+    font-size: 19px;
+    padding-bottom: 1px;
+}
+
+.main{
+    padding: 10px;
+}
+h1{
+    font-size: 30px;
 }
