@@ -5,7 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Data\chat_messages.csv" />
+    <Content Include="Data\chat_messages.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
