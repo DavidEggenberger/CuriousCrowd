@@ -67,7 +67,7 @@ namespace Server
             app.UseStaticFiles();
             app.UseBlazorFrameworkFiles();
 
-            app.UseRouting();
+            app.UseRouting();      
 
             app.UseAuthorization();
 

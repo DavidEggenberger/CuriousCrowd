@@ -32,7 +32,7 @@ namespace Server.Workers
         {
             try
             {
-                while (!stoppingToken.IsCancellationRequested)
+                while (true)
                 {
                     await Task.Delay(rand.Next(1000));
 

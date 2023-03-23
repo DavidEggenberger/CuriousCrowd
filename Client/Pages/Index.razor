@@ -1,6 +1,10 @@
 ﻿@page "/"
 @inject HttpClientService httpClientService
 
+<DashboardComponent>
+
+</DashboardComponent>
+
 @foreach (var item in messages)
 {
     <h4>@item.RawMessage @item.Date @item.HarmfullnessScore</h4>
