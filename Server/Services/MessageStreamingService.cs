@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Server.BuildingBlocks;
 using Server.Data;
 using System;
@@ -23,7 +24,7 @@ namespace Server.Services
         }
         public async IAsyncEnumerable<Message> ReadMessages(int skip = 0)
         {
-            using (var reader = new StreamReader($@"{webHostEnvironment.WebRootPath}\Data\{DataConstants.MessageCSVFilePath}"))
+            using (var reader = new StreamReader($@"{(webHostEnvironment.IsProduction() ? webHostEnvironment.WebRootPath : webHostEnvironment.ContentRootPath)}\Data\{DataConstants.MessageCSVFilePath}"))
             {
                 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
