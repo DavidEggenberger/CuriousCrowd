@@ -5,63 +5,96 @@
     <div class="sideBar">
         @if(reportedMessagesSorted != null)
         {
-            @foreach(var reportedMessage in reportedMessagesSorted)
+            <select @bind="Filter" @bind:event="oninput">
+                <option value="urgent">Most urgent first</option>
+                <option value="newest">Newest first</option>
+            </select>
+            @foreach(var reportedMessage in reportedMessagesSorted.Select((m, i) => (m, i)))
             {
-                @if(reportedMessage == selectedMessage)
+                @if(reportedMessage.i > 15)
                 {
-                    <div class="reportedMessageOverview active" @onclick="() => SetReportedMessage(reportedMessage)" >
-                        <h7>@reportedMessage.Date.ToString("T", CultureInfo.CreateSpecificCulture("de-DE"))  </h7>
-                        <h7>Urgency: @reportedMessage.Risk</h7>
+                    continue;
+                }
+                @if(reportedMessage.m == selectedMessage)
+                {
+                    <div class="reportedMessageOverview active" @onclick="() => SetReportedMessage(reportedMessage.m)" >
+                        <h7>@reportedMessage.m.Date.ToString("T", CultureInfo.CreateSpecificCulture("de-DE"))  </h7>
+                        <h7>Urgency: @reportedMessage.m.Risk</h7>
                     </div>
                 }
                 else
                 {
-                    <div class="reportedMessageOverview" @onclick="() => SetReportedMessage(reportedMessage)" >
-                        <h7>@reportedMessage.Date.ToString("T", CultureInfo.CreateSpecificCulture("de-DE"))  </h7>
-                        <h7>Urgency: @reportedMessage.Risk</h7>
+                    <div class="reportedMessageOverview" @onclick="() => SetReportedMessage(reportedMessage.m)" >
+                        <h7>@reportedMessage.m.Date.ToString("T", CultureInfo.CreateSpecificCulture("de-DE"))  </h7>
+                        <h7>Urgency: @reportedMessage.m.Risk</h7>
                     </div>
                 }  
             }
+            @if(reportedMessagesSorted.Count > 15)
+            {
+                <div class="queueOverview">
+                    <h7>Queue has @reportedMessages.Count reports</h7>
+                </div>
+            }  
         }   
     </div>
-    <ReportedMessageComponent ReportedMessage="selectedMessage"/>
+    <ReportedMessageComponent ReportFinished="(s) => { reportedMessagesSorted.Remove(s); reportedMessages.Remove(s); selectedMessage = reportedMessagesSorted.FirstOrDefault(); StateHasChanged();}" ReportedMessage="selectedMessage"/>
 </div>
 
 @code{
+    private string filter;
+    public string Filter
+    {
+        get
+        {
+            return filter;
+        }
+        set
+        {
+            filter = value;
+            if(filter == "newest")
+            {
+                reportedMessagesSorted = reportedMessages.OrderByDescending(r => r.Date).ToList();
+            }
+            if(filter == "urgent")
+            {
+                reportedMessagesSorted = reportedMessages.OrderByDescending(r => r.Risk).ToList();
+            }
+        }
+    }
+
+
     private MessageDTO selectedMessage;
 
     private List<MessageDTO> messages;
 
     private List<MessageDTO> reportedMessages;
-    private List<MessageDTO> reportedMessagesSorted => reportedMessages.OrderByDescending(r => r.Risk).ToList();
+    private List<MessageDTO> reportedMessagesSorted;
 
     [CascadingParameter]
     public HubConnection connection { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        selectedMessage = new MessageDTO { };
         messages = new List<MessageDTO>();
-        reportedMessages = new List<MessageDTO>()
-        {
-            new MessageDTO
-            {
-                Date = DateTime.Now,
-                RawMessage = "sadfdsaf jöl ölklasdkjf öl ölfdsakj ",
-                Risk = 8
-            }
-        };
+        reportedMessages = new List<MessageDTO>(){};
+        reportedMessagesSorted = new List<MessageDTO>() { };
 
         connection.On<MessageBundleDTO>(SignalRConstants.NewMessages, (o) =>
         {
             messages.AddRange(o.Messages.DistinctBy(m => m.Id));
             foreach(var ob in o.Messages.DistinctBy(m => m.Id))
             {
-                if(ob.Risk > 3)
-                {
-                    reportedMessages.Add(ob);
-                }
+                reportedMessages.Add(ob);
             }
+
+            reportedMessagesSorted = filter == "newest" ? reportedMessages.OrderByDescending(r => r.Date).ToList() : reportedMessages.OrderByDescending(r => r.Risk).ToList();
+
+            if(selectedMessage == null)
+            {
+                selectedMessage = reportedMessagesSorted.First();
+            }
+
             StateHasChanged();
         });
     }

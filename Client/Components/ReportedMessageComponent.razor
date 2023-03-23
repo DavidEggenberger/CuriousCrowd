@@ -1,13 +1,37 @@
 ﻿@inject HttpClientService httpClientService
 
 <div class="reportedMessageContainer">
-    <div class="contextContainer"> 
-        <div>
-            <h3>Relevancy of report:</h3>
-            <h3>@ReportedMessage?.Date</h3>
+    @if(ReportedMessage != null)
+    {
+        <div class="contextContainer">
+            <table style="font-size: 16px; width: 200px;">
+                <tr>
+                    <td>Credibility of report:</td>
+                    <td>@ReportedMessage.Credibility</td>
+                </tr>
+                <tr>
+                    <td>Relevancy of report:</td>
+                    <td>@ReportedMessage.Risk</td>
+                </tr>
+                <tr>
+                    <td>Detected Violence:</td>
+                    <td>@ReportedMessage.Violence</td>
+                </tr>
+                <tr>
+                    <td>Detected Hate:</td>
+                    <td>@ReportedMessage.HateSpeech</td>
+                </tr>
+                <tr>
+                    <td>Detected Vulgarity:</td>
+                    <td>@ReportedMessage.Vulgarity</td>
+                </tr>
+                <tr>
+                    <td>Detected Risk:</td>
+                    <td>@ReportedMessage.Risk</td>
+                </tr>
+            </table>
         </div>
-    </div>
-    <div class="messagesContainer">
+        <div class="messagesContainer">
         @if(RelatedMessagesSorted?.Count > 0)
         {
             foreach(var relatedMessage in RelatedMessagesSorted)
@@ -19,7 +43,7 @@
                         <h2 style="margin-top: 5px;">@relatedMessage.RawMessage</h2>
                     </div>
                 }
-                @if(relatedMessage.AccountId == ReportedMessage.AccountId)
+                else if(relatedMessage.AccountId == ReportedMessage.AccountId)
                 {
                     <div class="OtherMessagesFromUserContainer" style="display: grid; align-items: center; justify-items: center;">
                         <h3>Inspected User: @relatedMessage.Date.ToString("T", CultureInfo.CreateSpecificCulture("de-DE"))</h3>
@@ -37,15 +61,21 @@
                 }
             }
         }
-    </div>
+        </div>
     <div class="buttonContainer">
-
+        <AnalyzeMicrophoneComponent ReportFinished="async(r) => await ReportFinished.InvokeAsync(r)" SelectedMessage="reportedMessage" @ref="analyzeMicrophoneComponent" MicrophoneAnalyzedEventCallback="(t) => { result = t.result; StateHasChanged();}"></AnalyzeMicrophoneComponent>
     </div>
+    } 
 </div>
 
 
 @code{
+    [Parameter]
+    public EventCallback<MessageDTO> ReportFinished { get; set; }
+
     private MessageDTO reportedMessage;
+    private AnalyzeMicrophoneComponent analyzeMicrophoneComponent;
+    private string result;
 
     [Parameter]
     public MessageDTO ReportedMessage
@@ -62,6 +92,8 @@
 
     public List<MessageDTO> RelatedMessagesSorted => RelatedMessages?.ToList();
 
+    private bool WeHaveASituation;
+
     private List<(int, string)> AccountsTuples = new List<(int, string)>();
 
     public async Task Fetch()
@@ -69,6 +101,8 @@
         RelatedMessages = await httpClientService.GetFromAPIAsync<List<MessageDTO>>($"/messages/relatedMessages/{ReportedMessage.Id}");
         AccountsTuples.AddRange(RelatedMessages.DistinctBy(b => b.AccountId).Where(a => a.AccountId != reportedMessage.AccountId).Select((r, i) => (i + 1, r.AccountId)));
         AccountsTuples.Add(new(0, reportedMessage.AccountId));
+        analyzeMicrophoneComponent.Reset();
+
         StateHasChanged();
     }
 }

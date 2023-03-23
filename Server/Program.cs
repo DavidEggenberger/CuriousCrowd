@@ -1,3 +1,4 @@
+using Azure.Identity;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,11 @@ namespace Server
             var allianceLoaderService = host.Services.GetRequiredService<AllianceLoaderService>();
             var dataContextContainer = host.Services.GetRequiredService<DataContextContainer>();
 
+            using (var scope = host.Services.CreateScope())
+            {
+                //dataContextContainer.Messages.AddRange(await scope.ServiceProvider.GetRequiredService<MessageStreamingService>()
+                //    .ReadMessages(10000).ToListAsync());
+            }
             dataContextContainer.Alliances = await allianceLoaderService.ReadFirstAlliances();
 
             host.Run();
@@ -28,6 +34,11 @@ namespace Server
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostingContext) =>
+                {
+                    hostingContext.AddAzureKeyVault(new Uri("https://curiouscrowdkeyvault.vault.azure.net/"),
+                            new DefaultAzureCredential(new DefaultAzureCredentialOptions { ManagedIdentityClientId = "476415bc-1e9e-432b-abc9-e11430649068" }));
+                            })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();

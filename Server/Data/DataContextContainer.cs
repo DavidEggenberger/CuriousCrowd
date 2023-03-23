@@ -9,7 +9,7 @@ namespace Server.Data
         public void AddMessages(IList<Message> messages)
         {
             Messages.AddRange(messages);
-            if (Messages.Count > 10000)
+            if (Messages.Count > 50000)
             {
                 Messages.RemoveRange(0, messages.Count);
             }

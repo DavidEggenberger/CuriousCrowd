@@ -39,7 +39,7 @@ namespace Server.Workers
             {
                 while (true)
                 {
-                    await Task.Delay(20);
+                    await Task.Delay(new Random().Next(0, 2500));
 
                     var messageBundle = new MessageBundleDTO { Messages = new List<MessageDTO>() };
                     var messages = new List<Message>();

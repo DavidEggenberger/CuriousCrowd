@@ -10,13 +10,13 @@
 
         public void Increment()
         {
-            if(_skipCount > 10000 * 60 * 30)
+            if(_skipCount > 2500 * 60 * 30)
             {
                 _skipCount = 0;
             }
             else
             {
-                _skipCount += 10000;
+                _skipCount += 2500;
             }
         }
     }

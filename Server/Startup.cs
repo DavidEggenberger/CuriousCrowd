@@ -1,3 +1,4 @@
+using Client.BuildingBlocks.AzureSpeechRecognition;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -38,6 +39,16 @@ namespace Server
             services.AddSingleton<AllianceLoaderService>();
             services.AddSingleton<DataContextContainer>();
             services.AddSingleton<SkipCountProvider>();
+
+            services.Configure<AzureSpeechAnalysisOptions>(options =>
+            {
+                //options.Endpoint = Configuration["AzureSpeechAnalysisEndpoint"];
+                options.APIKey = Configuration["azure"];
+            });
+            services.AddHttpClient<AzureSpeechAnalysisAPIClient>(options =>
+            {
+                options.BaseAddress = new Uri("https://switzerlandnorth.api.cognitive.microsoft.com/sts/v1.0/");
+            });
 
             services.AddHostedService<BackgroundDataWorker>();
 

@@ -1,0 +1,118 @@
+﻿@inject IJSRuntime jsRuntime
+@inject HttpClientService httpClient
+@inject NavigationManager navigationManager
+
+<button class="button @(microphoneAnalyzing ? "analyzing" : "")" @onclick="async() => await StartAnalyzeMicrophoneAsync()">@(microphoneAnalyzing ? "🔉 recording...  🔉" : "Record Feedback 🔉")</button>
+
+@foreach(var sub in subs)
+{
+    <div style="cursor: pointer;" @onclick="() => { sub.Checked = !sub.Checked; StateHasChanged(); }" class="sub @(sub.Checked ? "acctive" : "")">
+        <h4>@sub.Name</h4>
+    </div>
+}
+
+<div @onclick="async() => await FinishReporting(SelectedMessage)" class="sublast" style="cursor: pointer;">
+    <h4>Finish Report</h4>
+</div>
+
+@code {
+    [Parameter]
+    public MessageDTO SelectedMessage { get; set; }
+
+    [Parameter]
+    public EventCallback<MessageDTO> ReportFinished { get; set; }
+
+    public async Task FinishReporting(MessageDTO message)
+    {
+        navigationManager.NavigateTo("/");
+        await ReportFinished.InvokeAsync(message);
+    }
+
+    public class Sub
+    {
+        public string Name { get; set; }
+        public bool Checked { get; set; }
+    }
+
+    public List<Sub> subs = new List<Sub>
+    {
+        new Sub
+        {
+            Name = "Bullying"
+        },
+        new Sub
+        {
+            Name = "Violence"
+        },
+        new Sub
+        {
+            Name = "Hate Speech"
+        },
+        new Sub
+        {
+            Name = "Vulgarity"
+        },
+        new Sub
+        {
+            Name = "Fraud"
+        },
+         new Sub
+        {
+            Name = "Sexism"
+        }
+    };
+
+    public string result = string.Empty;
+    public bool microphoneAnalyzing = false;
+    AzureCognitiveServicesTokenDTO token;
+    public bool Analyzed;
+
+    [Parameter]
+    public EventCallback<(string result, string language)> MicrophoneAnalyzedEventCallback { get; set; }
+
+    [Parameter]
+    public EventCallback StartedAnalyzing { get; set; }
+
+    public void Reset()
+    {
+        Analyzed = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        token = await httpClient.GetFromAPIAsync<AzureCognitiveServicesTokenDTO>("/AzureSpeechAnalysis");
+    }
+
+    public async Task StartAnalyzeMicrophoneAsync()
+    {
+        microphoneAnalyzing = true;
+        await StartedAnalyzing.InvokeAsync();
+        await jsRuntime.InvokeVoidAsync("analyzeMicrophone", DotNetObjectReference.Create(this), "en-US", token.Token);
+        StateHasChanged();
+    }
+
+    public void AcceptResult()
+    {
+        foreach(var sub in subs)
+        {
+            Console.WriteLine(sub.Name);
+            if (result.ToLower().Contains(sub.Name.ToLower()))
+            {
+                sub.Checked = true;
+                StateHasChanged();
+            }
+        }
+    }
+
+    [JSInvokable]
+    public void MicrophoneAnalyzedCallback(string s, string li)
+    {
+        result = new string(s.Substring("[object Object]".Count()));
+        MicrophoneAnalyzedEventCallback.InvokeAsync(new(s.Substring("[object Object]".Count()), li));
+        microphoneAnalyzing = false;
+        Analyzed = true;
+        AcceptResult();
+        StateHasChanged();
+    }
+}

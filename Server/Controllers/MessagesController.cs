@@ -47,9 +47,11 @@ namespace Server.Controllers
                 return null;
             }
             
-            var relatedMessages = dataContextContainer.Messages.Where(m => m.Alliance == message.Alliance).ToList();
+            var relatedMessages = dataContextContainer.Messages.Skip(skipCountProvider.GetSkipCount() + new Random().Next(2500)).Take(new Random().Next(14)).ToList();
 
-            return objectMapper.Map<List<MessageDTO>>(relatedMessages);
+            var m = await messageStreamingService.ReadMessagesForAlliance(message.Alliance.AllianceId, skipCountProvider.GetSkipCount()).ToListAsync();
+
+            return objectMapper.Map<List<MessageDTO>>(m);
         }
     }
 }

@@ -6,6 +6,8 @@ namespace Server.Data
     public class Message
     {
         public string AccountId { get; set; }
+        public bool Reported { get; set; }
+        public string ReportedBy { get; set; }
         public Guid Id { get; set; }
 
         [Name("is_family_friendly")]
@@ -31,7 +33,8 @@ namespace Server.Data
         
         [Name("HATE_SPEECH")]
         public double? HateSpeech { get; set; }
-        
+        public int Credibility { get; set; }
+
         [Name("date")]
         public DateTime Date { get; set; }
 
@@ -45,8 +48,6 @@ namespace Server.Data
         public double? HarmfullnessScore => CalculateHarfulness();
 
         public Alliance Alliance { get; set; }
-
-        public bool Reported { get; set; }
 
         private double CalculateHarfulness()
         {

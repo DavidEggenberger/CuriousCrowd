@@ -47,7 +47,7 @@ namespace Server.Services
 
                         alliances.Add(alliance);
 
-                        if(alliances.Count == 1200)
+                        if(alliances.Count == 500)
                         {
                             break;
                         }
