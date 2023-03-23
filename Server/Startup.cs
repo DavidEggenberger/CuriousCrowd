@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Server.BuildingBlocks;
 using Server.Services;
 using System;
 using System.Collections.Generic;
@@ -29,6 +30,7 @@ namespace Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<MessageStreamingService>();
+            services.AddScoped<DateProvider>();
 
             services.AddAutoMapper(typeof(Startup).Assembly);
 

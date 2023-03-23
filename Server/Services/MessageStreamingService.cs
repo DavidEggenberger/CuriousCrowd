@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Hosting;
+using Server.BuildingBlocks;
 using Server.Data;
 using System;
 using System.Collections.Generic;
@@ -14,9 +15,11 @@ namespace Server.Services
     public class MessageStreamingService
     {
         private readonly IWebHostEnvironment webHostEnvironment;
-        public MessageStreamingService(IWebHostEnvironment webHostEnvironment)
+        private readonly DateProvider dateProvider;
+        public MessageStreamingService(IWebHostEnvironment webHostEnvironment, DateProvider dateProvider)
         {
             this.webHostEnvironment = webHostEnvironment;
+            this.dateProvider = dateProvider;
         }
         public async IAsyncEnumerable<Message> ReadMessages()
         {
@@ -59,11 +62,6 @@ namespace Server.Services
                             message.Date = date;
                         }
 
-                        if (DateTimeOffset.TryParse(dictionary["timestamp"].ToString(), out var timestamp))
-                        {
-                            message.TimeStamp = timestamp;
-                        }
-
                         if (dictionary.TryGetValue("raw_message", out var rawMessage))
                         {
                             message.RawMessage = rawMessage.ToString();
@@ -73,6 +71,8 @@ namespace Server.Services
                         {
                             message.FilteredMessage = filteredMessage.ToString();
                         }
+
+                        message.Date = dateProvider.CurrentSimulatedDate;
 
                         yield return message;
                     }
