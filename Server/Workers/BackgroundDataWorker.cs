@@ -49,6 +49,10 @@ namespace Server.Workers
                             messageBundle.Messages.Add(mapper.Map<MessageDTO>(item));
                         }
                         skipCount += 20;
+                        if(skipCount > 800)
+                        {
+                            skipCount = 0;
+                        }
                     }
 
                     await hubContext.Clients.All.SendAsync(SignalRConstants.NewMessages, messageBundle);
