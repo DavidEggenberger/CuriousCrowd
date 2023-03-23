@@ -64,6 +64,16 @@ namespace Server.Services
                             message.TimeStamp = timestamp;
                         }
 
+                        if (dictionary.TryGetValue("raw_message", out var rawMessage))
+                        {
+                            message.RawMessage = rawMessage.ToString();
+                        }
+
+                        if (dictionary.TryGetValue("filtered_message", out var filteredMessage))
+                        {
+                            message.FilteredMessage = filteredMessage.ToString();
+                        }
+
                         yield return message;
                     }
                 }

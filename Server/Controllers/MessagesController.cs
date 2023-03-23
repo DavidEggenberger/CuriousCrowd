@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using AutoMapper.Internal.Mappers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Server.Services;
+using Shared.Messages;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Server.Controllers
@@ -10,15 +14,20 @@ namespace Server.Controllers
     public class MessagesController : ControllerBase
     {
         private readonly MessageStreamingService messageStreamingService;
-        public MessagesController(MessageStreamingService messageStreamingService)
+        private readonly IMapper objectMapper;
+        public MessagesController(IMapper objectMapper, MessageStreamingService messageStreamingService)
         {
             this.messageStreamingService = messageStreamingService;
+            this.objectMapper = objectMapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetMessages()
+        public async IAsyncEnumerable<MessageDTO> GetMessages()
         {
-            return Ok(messageStreamingService.ReadMessages());
+            await foreach(var message in messageStreamingService.ReadMessages())
+            {
+                yield return objectMapper.Map<MessageDTO>(message);
+            }
         }
     }
 }

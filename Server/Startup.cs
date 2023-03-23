@@ -30,13 +30,15 @@ namespace Server
         {
             services.AddScoped<MessageStreamingService>();
 
+            services.AddAutoMapper(typeof(Startup).Assembly);
+
             services.AddControllers()
                 .AddJsonOptions(options => 
                 {
                     //options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
                     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
                 });
-
+            services.AddRazorPages();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Server", Version = "v1" });
@@ -54,6 +56,8 @@ namespace Server
             }
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
+            app.UseBlazorFrameworkFiles();
 
             app.UseRouting();
 
@@ -61,7 +65,9 @@ namespace Server
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapRazorPages();
                 endpoints.MapControllers();
+                endpoints.MapFallbackToPage("/_Host");
             });
         }
     }
