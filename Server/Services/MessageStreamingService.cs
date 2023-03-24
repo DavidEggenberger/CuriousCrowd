@@ -98,6 +98,16 @@ namespace Server.Services
                                 _ => false
                             };
 
+                            message.Credibility = (new Random().Next(0, 100)) switch
+                            {
+                                > 90 => 90,
+                                > 80 => 80,
+                                > 70 => 70,
+                                > 50 => 60,
+                                > 30 => 30,
+                                > 10 => 12
+                            };
+
                             message.Id = Guid.NewGuid();
                             message.Date = dateProvider.CurrentSimulatedDate;
                         }
@@ -125,6 +135,16 @@ namespace Server.Services
                         try
                         {
                             var dictionary = (IDictionary<string, object>)expandoObject;
+
+                            if (dictionary.TryGetValue("alliance_id", out var allianceId))
+                            {
+                                Alliance alliance = null;
+                                if ((alliance = dataContextContainer.Alliances.SingleOrDefault(a => a.AllianceId == allianceId.ToString())) == null)
+                                {
+                                    continue;
+                                }
+                                message.Alliance = alliance;
+                            }
 
                             if (double.TryParse(dictionary["FRAUD"].ToString(), out var fraud))
                             {
@@ -287,12 +307,12 @@ namespace Server.Services
 
                             message.Credibility = (new Random().Next(0, 100)) switch
                             {
-                                > 90 => 5,
-                                > 80 => 4,
-                                > 70 => 3,
-                                > 50 => 2,
-                                > 30 => 1,
-                                > 10  => 0
+                                > 90 => 90,
+                                > 80 => 80,
+                                > 70 => 70,
+                                > 50 => 50,
+                                > 30 => 30,
+                                > 10  => 10
                             };
 
                             message.Id = Guid.NewGuid();

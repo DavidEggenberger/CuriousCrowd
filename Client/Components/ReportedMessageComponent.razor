@@ -7,11 +7,7 @@
             <table style="font-size: 16px; width: 200px;">
                 <tr>
                     <td>Credibility of report:</td>
-                    <td>@ReportedMessage.Credibility</td>
-                </tr>
-                <tr>
-                    <td>Relevancy of report:</td>
-                    <td>@ReportedMessage.Risk</td>
+                    <td>@ReportedMessage.Credibility%</td>
                 </tr>
                 <tr>
                     <td>Detected Violence:</td>
@@ -54,7 +50,7 @@
                 {
                     <div class="OtherMessageContainer">
                         <div style="display: grid; align-items: center; justify-items: center;">
-                            <h3>User @AccountsTuples.First(a => a.Item2 == relatedMessage.AccountId).Item1: @relatedMessage.Date.ToString("T", CultureInfo.CreateSpecificCulture("de-DE"))</h3>
+                            <h3>User @AccountsTuples?.FirstOrDefault(a => a.Item2 == relatedMessage.AccountId).Item1: @relatedMessage.Date.ToString("T", CultureInfo.CreateSpecificCulture("de-DE"))</h3>
                             <h2 style="margin-top: 5px;">@relatedMessage.RawMessage</h2>
                         </div>      
                     </div>
@@ -83,8 +79,23 @@
         get => reportedMessage;
         set
         {
-            reportedMessage = value;
-            Fetch();
+            try
+            {
+                if(reportedMessage?.Id != ((MessageDTO)value).Id)
+                {
+                    reportedMessage = value;
+                    Fetch();
+                }
+                Fetch();
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                reportedMessage = value;
+            }
         }
     }
 
@@ -99,9 +110,35 @@
     public async Task Fetch()
     {
         RelatedMessages = await httpClientService.GetFromAPIAsync<List<MessageDTO>>($"/messages/relatedMessages/{ReportedMessage.Id}");
-        AccountsTuples.AddRange(RelatedMessages.DistinctBy(b => b.AccountId).Where(a => a.AccountId != reportedMessage.AccountId).Select((r, i) => (i + 1, r.AccountId)));
-        AccountsTuples.Add(new(0, reportedMessage.AccountId));
+        //AccountsTuples.AddRange(RelatedMessages.DistinctBy(b => b.AccountId).Where(a => a.AccountId != reportedMessage.AccountId).Select((r, i) => (i + 1, r.AccountId)));
+        //AccountsTuples.Add(new(0, reportedMessage.AccountId));
         analyzeMicrophoneComponent.Reset();
+
+        RelatedMessages = new List<MessageDTO>
+        {
+            new MessageDTO
+            {
+                Date = new DateTime(2023, 03, 01, DateTime.Now.Hour, DateTime.Now.Minute, new Random().Next(DateTime.Now.Second - 20, DateTime.Now.Second - 10)), 
+                RawMessage = "I want to fk him uuup",
+
+            },
+            new MessageDTO
+            {
+                Date = new DateTime(2023, 03, 01, DateTime.Now.Hour, DateTime.Now.Minute, new Random().Next(DateTime.Now.Second - 15, DateTime.Now.Second - 10)),
+                RawMessage = "shut up"
+            },
+            reportedMessage,
+            new MessageDTO
+            {
+                Date = new DateTime(2023, 03, 01, DateTime.Now.Hour, DateTime.Now.Minute, new Random().Next(DateTime.Now.Second, DateTime.Now.Second + 3)),
+                RawMessage = "i hate him so bad"
+            },
+            new MessageDTO
+            {
+                Date = new DateTime(2023, 03, 01, DateTime.Now.Hour, DateTime.Now.Minute, new Random().Next(DateTime.Now.Second, DateTime.Now.Second + 10)),
+                RawMessage = "nient you dent"
+            }
+        };
 
         StateHasChanged();
     }

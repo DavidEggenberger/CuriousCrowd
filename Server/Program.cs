@@ -24,8 +24,8 @@ namespace Server
 
             using (var scope = host.Services.CreateScope())
             {
-                //dataContextContainer.Messages.AddRange(await scope.ServiceProvider.GetRequiredService<MessageStreamingService>()
-                //    .ReadMessages(10000).ToListAsync());
+                dataContextContainer.Messages.AddRange(await scope.ServiceProvider.GetRequiredService<MessageStreamingService>()
+                    .ReadMessages(10000).ToListAsync());
             }
             dataContextContainer.Alliances = await allianceLoaderService.ReadFirstAlliances();
 
